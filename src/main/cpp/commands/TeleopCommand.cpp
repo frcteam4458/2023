@@ -2,6 +2,8 @@
 
 #include <frc/shuffleboard/Shuffleboard.h>
 
+#include <math.h>
+
 TeleopCommand::TeleopCommand(DriveSubsystem* subsystem)
     : driveSubsystem{subsystem},
     driveChooser{}
@@ -15,5 +17,9 @@ void TeleopCommand::Execute() {
     // if(driveChooser.GetSelected())
         // driveSubsystem->DriveCurvature(-controller.GetLeftY(), controller.GetRawAxis(2)); // axis 2 is right X
     // else
-        driveSubsystem->Drive(-controller.GetLeftY(), controller.GetRawAxis(2));
+
+    y = controller.GetLeftY();
+    omega = controller.GetRawAxis(2);
+    if(controller.GetRawButton(8) != 0) omega /= 4;
+        driveSubsystem->Drive(-std::pow(y, 3), omega/8);
 }

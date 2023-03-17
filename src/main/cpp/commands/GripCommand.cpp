@@ -8,7 +8,8 @@ static bool closed = false;
 static double amperage = 0.0;
 
 GripCommand::GripCommand(GripperSubsystem* subsystem, double _amperage)
-    : gripperSubsystem{subsystem}
+    : gripperSubsystem{subsystem},
+    gripperController{gripperkP, 0.0, 0.0, 200_ms}
 {
 
     AddRequirements(gripperSubsystem);
@@ -22,7 +23,16 @@ void GripCommand::Initialize() {
 }
 
 void GripCommand::Execute() {
-    if(closed) gripperSubsystem->Set(0.1);
+    if(!closed) {
+        if(gripperSubsystem->GetPosition() < 0) {
+            gripperSubsystem->Set(-1);
+        } else {
+            gripperSubsystem->Set(0);
+        }
+        return;
+    }
+    gripperSubsystem->Set(0.2);
+    // gripperSubsystem->Set(gripperController.Calculate(gripperSubsystem->GetCurrent250ms()))
 }
 
 void GripCommand::End(bool interrupted) {

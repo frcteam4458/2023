@@ -12,6 +12,16 @@
 #include "Controls.h"
 #include "Constants.h"
 
+#include <math.h>
+
+#include <frc2/command/PIDCommand.h>
+
+#include <frc2/command/WaitUntilCommand.h>
+#include <frc2/command/WaitCommand.h>
+
+#include <frc2/command/CommandPtr.h>
+
+#include <wpi/raw_ostream.h>
 
 RobotContainer::RobotContainer() : 
 driveSubsystem{},
@@ -25,6 +35,7 @@ teleopCommand{&driveSubsystem}
   ConfigureButtonBindings();
 }
 
+
 void RobotContainer::ConfigureButtonBindings() {
 
   button1.OnTrue(
@@ -37,32 +48,39 @@ void RobotContainer::ConfigureButtonBindings() {
     }.ToPtr()
   );
 
-  button1.OnTrue(
-    frc2::InstantCommand{
-      [this] {
-        if(GripCommand::GetClosed()) {
-          gripperSubsystem.GetCurrentCommand()->Cancel();
-        }
-        std::move(GripCommand{&gripperSubsystem, CONE_AMPERAGE}).Schedule();
-      }
-    }.ToPtr()
-  );
-
-  button2.OnTrue(
-    frc2::InstantCommand{
-      [this] {
-        if(GripCommand::GetClosed()) {
-          gripperSubsystem.GetCurrentCommand()->Cancel();
-        }
-        std::move(GripCommand{&gripperSubsystem, CUBE_AMPERAGE}).Schedule();
-      }
-    }.ToPtr()
-  );
+  leftBumper.WhileHeld(frc2::InstantCommand{
+    [this] {
+      gripperSubsystem.Set(0.5);
+    },
+    {&gripperSubsystem}
+  });
+  leftBumper.WhenReleased(frc2::InstantCommand{
+    [this] {
+      gripperSubsystem.Set(0);
+    },
+    {&gripperSubsystem}
+  });
+  rightBumper.WhileHeld(frc2::InstantCommand{
+    [this] {
+      gripperSubsystem.Set(-0.5);
+    },
+    {&gripperSubsystem}
+  });
+  rightBumper.WhenReleased(frc2::InstantCommand{
+    [this] {
+      gripperSubsystem.Set(0);
+    },
+    {&gripperSubsystem}
+  });
 
   pivotSubsystem.SetDefaultCommand(
     frc2::RunCommand{
       [this] {
-        pivotSubsystem.Set(pivotExtensionStick.GetRawAxis(1));
+        double input = pivotExtensionStick.GetRawAxis(1);
+        // if(std::abs(input) < 0.1) {
+        //   input = 0.0;
+        // }
+        pivotSubsystem.Set(input/4);
       },
       {&pivotSubsystem}
     }
@@ -71,11 +89,91 @@ void RobotContainer::ConfigureButtonBindings() {
   extensionSubsystem.SetDefaultCommand(
     frc2::RunCommand{
       [this] {
-        extensionSubsystem.Set(pivotExtensionStick.GetRawAxis(0));
+        double input = pivotExtensionStick.GetRawAxis(0);
+        // if(std::abs(input) < 0.2) {
+        //   input = 0.0;
+        // }
+
+        if(input < 0) input /= 4;
+        else input /= 2;
+        extensionSubsystem.Set(-input);
       },
       {&extensionSubsystem}
     }
   );
+
+  toggleSoftLimits.WhenPressed(frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSoftLimits(!extensionSubsystem.GetSoftLimits());
+    },
+    {}
+  });
+
+  // button2.WhenPressed(frc2::InstantCommand{
+  //   [this] {
+  //     extensionSubsystem.SetSetpoint(0);
+  //     pivotSubsystem.SetSetpoint(0);
+  //     gripperSubsystem.SetSetpoint(0);
+  //   },
+  //   {
+
+  //   }
+  // });
+
+  frc::SmartDashboard::PutData("Setpoint 1", new frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSetpoint(40);
+      // pivotSubsystem.SetSetpoint(0);
+      // gripperSubsystem.SetSetpoint(0);
+    },
+    {}
+  });
+
+  frc::SmartDashboard::PutData("Setpoint 2", new frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(0);
+      gripperSubsystem.SetSetpoint(0);
+    },
+    {}
+  });
+
+  frc::SmartDashboard::PutData("Setpoint 3", new frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(0);
+      gripperSubsystem.SetSetpoint(0);
+    },
+    {}
+  });
+
+  frc::SmartDashboard::PutData("Setpoint 4", new frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(0);
+      gripperSubsystem.SetSetpoint(0);
+    },
+    {}
+  });
+
+  frc::SmartDashboard::PutData("Setpoint 5", new frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(0);
+      gripperSubsystem.SetSetpoint(0);
+    },
+    {}
+  });
+
+  frc::SmartDashboard::PutData("Setpoint 6", new frc2::InstantCommand{
+    [this] {
+      extensionSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(0);
+      gripperSubsystem.SetSetpoint(0);
+    },
+    {}
+  });
+
 }
 
 frc2::Command* RobotContainer::GetTeleopCommand() {
@@ -123,18 +221,192 @@ frc2::Command* RobotContainer::GetAutonomousCommand() {
     }
   };
 
-  driveSubsystem.ResetAngle();
+
+
   return new frc2::SequentialCommandGroup{
-    // frc2::InstantCommand{
-    //   [this] {
-    //     driveSubsystem.ResetAngle();
-    //   }
-    // }
-    std::move(ramseteCommand),
     frc2::InstantCommand{
       [this] {
-        driveSubsystem.DriveVolts(0_V, 0_V);
+        extensionSubsystem.GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kForward, false);
+        extensionSubsystem.Set(0.25);
       }
+    },
+
+    frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{
+      [this] {
+        extensionSubsystem.GetEncoder().SetPosition(0);
+        extensionSubsystem.GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kForward, true);
+      }
+    },
+    frc2::InstantCommand{
+      [this] {
+        pivotSubsystem.GetPID().SetOutputRange(-0.33, 0.33);
+        // extensionSubsystem.GetMotor()->SetClosedLoopRampRate(1);
+        extensionSubsystem.GetPID().SetOutputRange(-0.5, 0.5);
+        extensionSubsystem.SetSetpoint(1);
+
+      },
+      {}
+    },
+    frc2::WaitCommand{1_s},
+    frc2::InstantCommand{[this] {
+      pivotSubsystem.SetSetpoint(-15);
+    },
+    {}},
+    frc2::WaitCommand{1_s},
+    frc2::InstantCommand{[this] {
+      extensionSubsystem.SetSetpoint(-6);
+    },
+    {}},
+    frc2::WaitCommand{1_s},
+    frc2::InstantCommand{[this] {
+      gripperSubsystem.Set(-0.2);
+    }},
+
+    frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{[this] {
+      extensionSubsystem.SetSetpoint(0);
+    }},
+
+    frc2::InstantCommand{[this] {
+      pivotSubsystem.SetSetpoint(-46);
+    }},
+
+    frc2::WaitCommand{2_s},
+
+    frc2::InstantCommand{[this] {
+      extensionSubsystem.SetSetpoint(-42);
+    }},
+
+    frc2::WaitCommand{2_s},
+
+    frc2::InstantCommand{[this] {
+      gripperSubsystem.Set(0.2);
+    }},
+
+    frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{[this] {
+      gripperSubsystem.Set(0);
+      extensionSubsystem.SetSetpoint(0);
+    }},
+    
+    frc2::WaitCommand{0.5_s},
+
+    frc2::InstantCommand{[this] {
+      pivotSubsystem.SetSetpoint(0);
+    }},
+
+    frc2::PIDCommand{
+      frc::PIDController{0.5, 0.0, 0.0},
+      [this] {
+        return driveSubsystem.GetPose().Translation().X().value();
+      },
+      5.0,
+      [this](double output) {
+        driveSubsystem.Drive(output, 0);
+      },
+      {&driveSubsystem}
     }
   };
+
+  // return new frc2::SequentialCommandGroup{
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       extensionSubsystem.SetSetpoint(40);
+
+  //     },
+  //     {}
+  //   },
+  //   frc2::InstantCommand{[this] {
+  //     while(!extensionSubsystem.AtSetpoint());
+  //   },
+  //   {}},
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       pivotSubsystem.SetSetpoint(-20);
+  //     },
+  //     {}
+  //   },
+  //   frc2::WaitUntilCommand{[this] {
+  //     return pivotSubsystem.AtSetpoint();
+  //   }},
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       gripperSubsystem.Set(0.5);
+  //     }
+  //   },
+  //   frc2::WaitCommand{1.5_s},
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       pivotSubsystem.SetSetpoint(-51);
+  //     },
+  //     {}
+  //   },
+  //   frc2::WaitUntilCommand{[this] {
+  //     return pivotSubsystem.AtSetpoint();
+  //   }},
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       extensionSubsystem.SetSetpoint(0);
+  //     },
+  //     {}
+  //   },
+  //   frc2::WaitUntilCommand{
+  //     [this] {
+  //       return extensionSubsystem.AtSetpoint();
+  //     }
+  //   },
+  //   frc2::WaitCommand{1_s},
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       gripperSubsystem.Set(-0.5);
+  //     }
+  //   },
+  //   frc2::WaitCommand{0.25_s},
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       gripperSubsystem.Set(0);
+  //     }
+  //   },
+  //   frc2::ParallelRaceGroup{
+  //     frc2::PIDCommand{
+  //       frc::PIDController{0.5, 0.0, 0.0},
+  //       [this] {
+  //         return driveSubsystem.GetPose().X().value();
+  //       },
+  //       10.0,
+  //       [this](double output) {
+  //         driveSubsystem.Drive(-output, 0);
+  //       },
+  //       {&driveSubsystem}
+  //     },
+  //     frc2::WaitCommand{5.0_s}
+  //   },
+  //   frc2::InstantCommand{
+  //     [this] {
+        
+  //     },
+  //     {}
+  //   }
+  // };
+
+  // command.Schedule();
+  // return new frc2::SequentialCommandGroup{
+  //   // frc2::InstantCommand{
+  //   //   [this] {
+  //   //     driveSubsystem.ResetAngle();
+  //   //   }
+  //   // }
+  //   std::move(ramseteCommand),
+  //   frc2::InstantCommand{
+  //     [this] {
+  //       driveSubsystem.DriveVolts(0_V, 0_V);
+  //     }
+  //   }
+  // };
+
+
 }

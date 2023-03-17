@@ -8,6 +8,7 @@
 #include <frc2/command/Command.h>
 
 #include "subsystems/GripperSubsystem.h"
+#include <frc/controller/PIDController.h>
 
 class GripCommand
     : public frc2::CommandHelper<frc2::CommandBase, GripCommand> {
@@ -20,6 +21,7 @@ class GripCommand
   static bool GetClosed();
  private:
   GripperSubsystem* gripperSubsystem;
+  frc::PIDController gripperController;
 
   
 };

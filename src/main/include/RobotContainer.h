@@ -20,6 +20,8 @@
 #include <frc/trajectory/Trajectory.h>
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrajectoryGenerator.h>
+#include <frc2/command/CommandPtr.h>
+
 
 
 class RobotContainer {
@@ -28,6 +30,7 @@ class RobotContainer {
 
   frc2::Command* GetTeleopCommand();
   frc2::Command* GetAutonomousCommand();
+
 
  private:
   DriveSubsystem driveSubsystem;

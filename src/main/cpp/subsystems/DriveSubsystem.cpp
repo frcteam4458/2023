@@ -98,12 +98,32 @@ DriveSubsystem::DriveSubsystem() :
     right.SetDistancePerPulse(2 * std::numbers::pi * 0.0762 / 360);
 
     frc::SmartDashboard::PutData(&field);
+
+        drive.SetSafetyEnabled(false);
+
+
+    fl.SetOpenLoopRampRate(1);
+    fr.SetOpenLoopRampRate(1);
+    bl.SetOpenLoopRampRate(1);
+    br.SetOpenLoopRampRate(1);
+
+    fl.SetClosedLoopRampRate(1);
+    fr.SetClosedLoopRampRate(1);
+    bl.SetClosedLoopRampRate(1);
+    br.SetClosedLoopRampRate(1);
+    
 }
 
 void DriveSubsystem::Periodic() {
     odometry.Update(frc::Rotation2d{GetAngleDeg()}, units::meter_t{left.GetDistance()}, units::meter_t{right.GetDistance()});
 
     field.SetRobotPose(odometry.GetPose());
+
+    frc::SmartDashboard::PutNumber("FL", fl.Get());
+    frc::SmartDashboard::PutNumber("FR", fr.Get());
+    frc::SmartDashboard::PutNumber("BL", bl.Get());
+    frc::SmartDashboard::PutNumber("BR", br.Get());
+
 }
 
 void DriveSubsystem::SimulationPeriodic() {
@@ -177,4 +197,8 @@ float DriveSubsystem::Clamp(float input, float max) {
 
 void DriveSubsystem::ResetAngle() {
     pigeon.SetYaw(0);
+}
+
+void DriveSubsystem::SetSetpoint() {
+    
 }

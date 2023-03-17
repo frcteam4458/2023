@@ -3,6 +3,10 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc2/command/CommandScheduler.h>
 
+#include <frc2/command/Command.h>
+
+#include <frc/smartdashboard/SmartDashboard.h>
+
 void Robot::RobotInit() {}
 
 void Robot::RobotPeriodic() {
@@ -10,27 +14,30 @@ void Robot::RobotPeriodic() {
 }
 
 // Gets autonomous command from RobotContainer, schedules if command is not null
-void Robot::AutonomousInit() {
+void Robot::AutonomousInit()
+{
+  frc::SmartDashboard::PutBoolean("disabled", false);
   autonomousCommand = container.GetAutonomousCommand();
-
-  if (autonomousCommand != nullptr) {
-    autonomousCommand->Schedule();
-  }
+  autonomousCommand->Schedule();
 }
 
-void Robot::AutonomousPeriodic() {}
+void Robot::DisabledPeriodic() {
+  frc::SmartDashboard::PutBoolean("disabled", true);
+}
 
-// Destroys autonomous command, gets teleop from RobotContainer, schedules if command is not null
+// void Robot::AutonomousPeriodic() {
+
+// }
+
+// // Destroys autonomous command, gets teleop from RobotContainer, schedules if command is not null
 void Robot::TeleopInit() {
-  if (autonomousCommand != nullptr) {
-    autonomousCommand->Cancel();
-    autonomousCommand = nullptr;
-  }
-
+  frc::SmartDashboard::PutBoolean("disabled", false);
   container.GetTeleopCommand()->Schedule();
 }
 
-void Robot::TeleopPeriodic() {}
+// void Robot::TeleopPeriodic() {}
+
+
 
 #ifndef RUNNING_FRC_TESTS
 int main() {

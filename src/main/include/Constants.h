@@ -19,8 +19,14 @@ const auto LIFT = 5;
 const auto EXTENSION = 6;
 const auto GRIPPER = 7;
 
-const int LEFT_ENCODER[] = {0, 1};
-const int RIGHT_ENCODER[] = {2, 3};
+const int LEFT_ENCODER[] = {5, 6};
+const int RIGHT_ENCODER[] = {7, 8};
+const int PIVOT_ENCODER = 0;
+
+const double PIVOT_MAX = 1.7;
+const double kPArm = 0.1;
+const double kIArm = 0;
+const double kDArm = 0;
 
 const int GYRO = 0;
 
@@ -37,6 +43,8 @@ const auto akA = 0.025244_V * 1_s * 1_s / 1_m;
 const auto lkP = 1.2463;
 const auto rkP = 1.4399;
 const auto akP = (lkP + rkP) / 2;
+
+const auto gripperkP = 1;
 
 const auto ramseteB = 2.0 * 1_rad * 1_rad / (1_m * 1_m);
 const auto ramseteZeta = 0.7 * 1_rad;

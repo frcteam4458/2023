@@ -58,6 +58,7 @@ class DriveSubsystem : public frc2::SubsystemBase {
   frc::Pose2d GetPose();
   float Clamp(float input, float max);
   void ResetAngle();
+  void SetSetpoint();
 
  private:
 

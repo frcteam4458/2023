@@ -7,11 +7,18 @@
 #include "Constants.h"
 #include <rev/CANSparkMax.h>
 
+#include <networktables/GenericEntry.h>
+
 class ExtensionSubsystem : public Arm {
  public:
   ExtensionSubsystem();
   void Periodic() override;
+
+  bool GetSoftLimits();
+  void SetSoftLimits(bool enabled);
+  bool Set(double power) override;
  private:
+    nt::GenericEntry* softLimits;
 };
 
 #endif

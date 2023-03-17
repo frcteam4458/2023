@@ -22,6 +22,9 @@ class TeleopCommand
   DriveSubsystem* driveSubsystem;
   frc::XboxController controller{0};
   frc::SendableChooser<bool> driveChooser;
+
+  double y = 0;
+  double omega = 0;
 };
 
 #endif
