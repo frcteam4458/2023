@@ -30,6 +30,10 @@ DriveSubsystem::DriveSubsystem() :
     fr{FR, rev::CANSparkMaxLowLevel::MotorType::kBrushless},
     bl{BL, rev::CANSparkMaxLowLevel::MotorType::kBrushless},
     br{BR, rev::CANSparkMaxLowLevel::MotorType::kBrushless},
+    flEncoder{fl.GetEncoder()},
+    frEncoder{fr.GetEncoder()},
+    blEncoder{bl.GetEncoder()},
+    brEncoder{br.GetEncoder()},
     #endif
 
     leftMotors{fl, bl},
@@ -85,12 +89,6 @@ DriveSubsystem::DriveSubsystem() :
     
     field{}
 {
-    #ifdef CAN_DRIVETRAIN
-    fl.GetAbsoluteEncoder(rev::SparkMaxAbsoluteEncoder::Type::kDutyCycle);
-    fr.GetAbsoluteEncoder(rev::SparkMaxAbsoluteEncoder::Type::kDutyCycle);
-    bl.GetAbsoluteEncoder(rev::SparkMaxAbsoluteEncoder::Type::kDutyCycle);
-    br.GetAbsoluteEncoder(rev::SparkMaxAbsoluteEncoder::Type::kDutyCycle);
-    #endif
     fr.SetInverted(true);
     br.SetInverted(true);
     right.SetReverseDirection(true);
@@ -123,6 +121,9 @@ void DriveSubsystem::Periodic() {
     frc::SmartDashboard::PutNumber("FR", fr.Get());
     frc::SmartDashboard::PutNumber("BL", bl.Get());
     frc::SmartDashboard::PutNumber("BR", br.Get());
+
+    frc::SmartDashboard::PutNumber("Odometer X", GetPose().X().value());
+    frc::SmartDashboard::PutNumber("Odometer X", GetPose().Y().value());
 
 }
 
@@ -157,7 +158,7 @@ void DriveSubsystem::DriveSpeeds(units::meters_per_second_t left, units::meters_
 
 void DriveSubsystem::DriveCurvature(float fwd, float omega) {
     frc::SmartDashboard::PutNumber("omega", omega);
-    drive.CurvatureDrive(fwd, omega, false);
+    drive.CurvatureDrive(fwd, omega, true);
 }
 
 float DriveSubsystem::GetAngle() {
@@ -201,4 +202,15 @@ void DriveSubsystem::ResetAngle() {
 
 void DriveSubsystem::SetSetpoint() {
     
+}
+
+void DriveSubsystem::ResetEncoders() {
+    flEncoder.SetPosition(0);
+    frEncoder.SetPosition(0);
+    blEncoder.SetPosition(0);
+    brEncoder.SetPosition(0);
+}
+
+double DriveSubsystem::GetAverageEncoder() {
+    return (flEncoder.GetPosition() + frEncoder.GetPosition() + blEncoder.GetPosition() + brEncoder.GetPosition())/4;
 }

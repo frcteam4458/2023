@@ -59,7 +59,8 @@ class DriveSubsystem : public frc2::SubsystemBase {
   float Clamp(float input, float max);
   void ResetAngle();
   void SetSetpoint();
-
+  void ResetEncoders();
+  double GetAverageEncoder();
  private:
 
   #ifdef PWM_DRIVETRAIN
@@ -74,6 +75,11 @@ class DriveSubsystem : public frc2::SubsystemBase {
   rev::CANSparkMax fr;
   rev::CANSparkMax bl;
   rev::CANSparkMax br;
+
+  rev::SparkMaxRelativeEncoder flEncoder;
+  rev::SparkMaxRelativeEncoder frEncoder;
+  rev::SparkMaxRelativeEncoder blEncoder;
+  rev::SparkMaxRelativeEncoder brEncoder;
   #endif
 
   frc::MotorControllerGroup leftMotors;

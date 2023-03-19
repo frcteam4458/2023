@@ -23,13 +23,22 @@
 
 #include <wpi/raw_ostream.h>
 
+#include <math.h>
+
+#include <frc2/command/ConditionalCommand.h>
+
 RobotContainer::RobotContainer() : 
 driveSubsystem{},
 extensionSubsystem{},
 gripperSubsystem{},
 pivotSubsystem{},
 
-teleopCommand{&driveSubsystem}
+teleopCommand{&driveSubsystem},
+
+station1{},
+station2{},
+station3{},
+target{}
 
 {
   ConfigureButtonBindings();
@@ -120,38 +129,37 @@ void RobotContainer::ConfigureButtonBindings() {
   //   }
   // });
 
-  frc::SmartDashboard::PutData("Setpoint 1", new frc2::InstantCommand{
+  frc::SmartDashboard::PutData("Floor Intake", new frc2::InstantCommand{
     [this] {
-      extensionSubsystem.SetSetpoint(40);
-      // pivotSubsystem.SetSetpoint(0);
-      // gripperSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(-12.9);
+      extensionSubsystem.SetSetpoint(3.5);
+      gripperSubsystem.SetSetpoint(-7.5);
     },
     {}
   });
 
-  frc::SmartDashboard::PutData("Setpoint 2", new frc2::InstantCommand{
+  frc::SmartDashboard::PutData("Mid", new frc2::InstantCommand{
     [this] {
-      extensionSubsystem.SetSetpoint(0);
-      pivotSubsystem.SetSetpoint(0);
-      gripperSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(-35);
+      extensionSubsystem.SetSetpoint(15);
     },
     {}
   });
 
-  frc::SmartDashboard::PutData("Setpoint 3", new frc2::InstantCommand{
+  frc::SmartDashboard::PutData("Single Station", new frc2::InstantCommand{
     [this] {
-      extensionSubsystem.SetSetpoint(0);
-      pivotSubsystem.SetSetpoint(0);
-      gripperSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(-44);
+      extensionSubsystem.SetSetpoint(4);
+      gripperSubsystem.SetSetpoint(-7.5);
     },
     {}
   });
 
-  frc::SmartDashboard::PutData("Setpoint 4", new frc2::InstantCommand{
+  frc::SmartDashboard::PutData("Double Station", new frc2::InstantCommand{
     [this] {
-      extensionSubsystem.SetSetpoint(0);
-      pivotSubsystem.SetSetpoint(0);
-      gripperSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(-51);
+      extensionSubsystem.SetSetpoint(6);
+      gripperSubsystem.SetSetpoint(-7.5);
     },
     {}
   });
@@ -173,6 +181,10 @@ void RobotContainer::ConfigureButtonBindings() {
     },
     {}
   });
+
+  SetupAuto();
+
+  frc::SmartDashboard::PutData(&chooser);
 
 }
 
@@ -221,45 +233,207 @@ frc2::Command* RobotContainer::GetAutonomousCommand() {
     }
   };
 
+  return chooser.GetSelected();
+}
 
 
-  return new frc2::SequentialCommandGroup{
+
+void RobotContainer::SetupAuto() {
+   chooser.AddOption("Blue 3 / Red 3", new frc2::SequentialCommandGroup{
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.ResetAngle();
+    }},
     frc2::InstantCommand{
       [this] {
-        extensionSubsystem.GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kForward, false);
-        extensionSubsystem.Set(0.25);
+        extensionSubsystem.SetSoftLimits(false);
+        extensionSubsystem.GetPID().SetOutputRange(-0.25, 0.25);
+        // extensionSubsystem.SetSetpoint(5);
       }
     },
-
-    frc2::WaitCommand{1_s},
-
+    frc2::WaitCommand{0.25_s},
     frc2::InstantCommand{
       [this] {
-        extensionSubsystem.GetEncoder().SetPosition(0);
-        extensionSubsystem.GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kForward, true);
-      }
-    },
-    frc2::InstantCommand{
-      [this] {
-        pivotSubsystem.GetPID().SetOutputRange(-0.33, 0.33);
+        pivotSubsystem.GetPID().SetOutputRange(-0.15, 0.5);
         // extensionSubsystem.GetMotor()->SetClosedLoopRampRate(1);
-        extensionSubsystem.GetPID().SetOutputRange(-0.5, 0.5);
-        extensionSubsystem.SetSetpoint(1);
-
       },
       {}
     },
+    frc2::InstantCommand{[this] {
+      // pivotSubsystem.SetSetpoint(-15);
+    }},
+    frc2::WaitCommand{0.5_s},
+    frc2::InstantCommand{[this] {
+      pivotSubsystem.GetPID().SetOutputRange(-0.5, 0.5);
+      // extensionSubsystem.SetSetpoint(-4.5);
+    },
+    {}},
+    frc2::WaitCommand{0.5_s},
+    frc2::InstantCommand{[this] {
+      // gripperSubsystem.Set(-0.2);
+    }},
+
     frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{[this] {
+      // extensionSubsystem.SetSetpoint(5);
+    }},
+
+    frc2::WaitCommand{0.5_s},
+
+    frc2::InstantCommand{[this] {
+      // pivotSubsystem.SetSetpoint(-46);
+    }},
+
+    frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{[this] {
+            extensionSubsystem.GetPID().SetOutputRange(-0.5, 0.33);
+      // extensionSubsystem.SetSetpoint(-30);
+    }},
+
+    frc2::WaitCommand{1.5_s},
+
+    frc2::InstantCommand{[this] {
+      // gripperSubsystem.Set(0.2);
+    }},
+
+    frc2::InstantCommand{[this] {
+      // extensionSubsystem.SetSetpoint(5);
+      driveSubsystem.Drive(-0.1, 0);
+    }},
+    
+    frc2::WaitCommand{0.5_s},
+
+    frc2::InstantCommand{[this] {
+      // pivotSubsystem.SetSetpoint(-13);
+      driveSubsystem.Drive(0, 0);
+    }},
+    frc2::WaitCommand{0.5_s},
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+    }},
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.005, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAngle();
+        },
+        150.0,
+        [this](double output) {
+          driveSubsystem.Drive(0.0, std::clamp(-output, -0.0833, 0.0833));
+        }
+      },
+      frc2::WaitCommand{1.5_s},
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+      // driveSubsystem.ResetEncoders();
+    }},
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.05, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAverageEncoder();
+        },
+        17.5,
+        [this](double output) {
+          driveSubsystem.Drive(std::clamp(output, -0.25, 0.25), 0);
+        }
+      },
+
+      frc2::WaitCommand{1.5_s}
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+    }},
+
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.005, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAngle();
+        },
+        185.0,
+        [this](double output) {
+          driveSubsystem.Drive(0.0, std::clamp(-output, -0.166, 0.166));
+        }
+      },
+
+      frc2::WaitCommand{1_s}
+    },
+
+    frc2::InstantCommand{[this] {
+      // driveSubsystem.ResetEncoders();
+    }},
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.01, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAverageEncoder();
+        },
+        130.0,
+        [this](double output) {
+          driveSubsystem.Drive(std::clamp(output, -0.25, 0.25), 0);
+        }
+      },
+
+      frc2::WaitCommand{3.25_s}
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+    }}
+  });
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  chooser.AddOption("Blue 3 / Red 3", new frc2::SequentialCommandGroup{
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.ResetAngle();
+    }},
+    frc2::InstantCommand{
+      [this] {
+        extensionSubsystem.SetSoftLimits(false);
+        extensionSubsystem.GetPID().SetOutputRange(-0.25, 0.25);
+        extensionSubsystem.SetSetpoint(5);
+      }
+    },
+    frc2::WaitCommand{0.25_s},
+    frc2::InstantCommand{
+      [this] {
+        pivotSubsystem.GetPID().SetOutputRange(-0.15, 0.5);
+        // extensionSubsystem.GetMotor()->SetClosedLoopRampRate(1);
+      },
+      {}
+    },
     frc2::InstantCommand{[this] {
       pivotSubsystem.SetSetpoint(-15);
-    },
-    {}},
-    frc2::WaitCommand{1_s},
+    }},
+    frc2::WaitCommand{0.5_s},
     frc2::InstantCommand{[this] {
-      extensionSubsystem.SetSetpoint(-6);
+      pivotSubsystem.GetPID().SetOutputRange(-0.5, 0.5);
+      extensionSubsystem.SetSetpoint(-4.5);
     },
     {}},
-    frc2::WaitCommand{1_s},
+    frc2::WaitCommand{0.5_s},
     frc2::InstantCommand{[this] {
       gripperSubsystem.Set(-0.2);
     }},
@@ -267,146 +441,219 @@ frc2::Command* RobotContainer::GetAutonomousCommand() {
     frc2::WaitCommand{1_s},
 
     frc2::InstantCommand{[this] {
-      extensionSubsystem.SetSetpoint(0);
+      extensionSubsystem.SetSetpoint(5);
     }},
+
+    frc2::WaitCommand{0.5_s},
 
     frc2::InstantCommand{[this] {
       pivotSubsystem.SetSetpoint(-46);
     }},
 
-    frc2::WaitCommand{2_s},
+    frc2::WaitCommand{1_s},
 
     frc2::InstantCommand{[this] {
-      extensionSubsystem.SetSetpoint(-42);
+            extensionSubsystem.GetPID().SetOutputRange(-0.5, 0.33);
+      extensionSubsystem.SetSetpoint(-30);
     }},
 
-    frc2::WaitCommand{2_s},
+    frc2::WaitCommand{1.5_s},
 
     frc2::InstantCommand{[this] {
       gripperSubsystem.Set(0.2);
     }},
 
-    frc2::WaitCommand{1_s},
-
     frc2::InstantCommand{[this] {
-      gripperSubsystem.Set(0);
-      extensionSubsystem.SetSetpoint(0);
+      extensionSubsystem.SetSetpoint(5);
+      driveSubsystem.Drive(-0.1, 0);
     }},
     
     frc2::WaitCommand{0.5_s},
 
     frc2::InstantCommand{[this] {
-      pivotSubsystem.SetSetpoint(0);
+      pivotSubsystem.SetSetpoint(-13);
+      driveSubsystem.Drive(0, 0);
+    }},
+    frc2::WaitCommand{0.5_s},
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
     }},
 
-    frc2::PIDCommand{
-      frc::PIDController{0.5, 0.0, 0.0},
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.005, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAngle();
+        },
+        150.0,
+        [this](double output) {
+          driveSubsystem.Drive(0.0, std::clamp(-output, -0.0833, 0.0833));
+        }
+      },
+      frc2::WaitCommand{1.5_s},
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+      // driveSubsystem.ResetEncoders();
+    }},
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.05, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAverageEncoder();
+        },
+        17.5,
+        [this](double output) {
+          driveSubsystem.Drive(std::clamp(output, -0.25, 0.25), 0);
+        }
+      },
+
+      frc2::WaitCommand{1.5_s}
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+    }},
+
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.005, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAngle();
+        },
+        185.0,
+        [this](double output) {
+          driveSubsystem.Drive(0.0, std::clamp(-output, -0.0833, 0.0833));
+        }
+      },
+
+      frc2::WaitCommand{1_s}
+    },
+
+    frc2::InstantCommand{[this] {
+      // driveSubsystem.ResetEncoders();
+    }},
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.01, 0.0, 0.0},
+        [this] {
+          return driveSubsystem.GetAverageEncoder();
+        },
+        130.0,
+        [this](double output) {
+          driveSubsystem.Drive(std::clamp(output, -0.25, 0.25), 0);
+        }
+      },
+
+      frc2::WaitCommand{3.25_s}
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+    }}
+  });
+
+
+  
+
+
+
+
+
+  chooser.AddOption("Blue 2 / Red 2", new frc2::SequentialCommandGroup{
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.ResetAngle();
+    }},
+    frc2::InstantCommand{
       [this] {
-        return driveSubsystem.GetPose().Translation().X().value();
+        extensionSubsystem.SetSoftLimits(false);
+        extensionSubsystem.GetPID().SetOutputRange(-0.25, 0.25);
+        // extensionSubsystem.SetSetpoint(5);
+      }
+    },
+    frc2::WaitCommand{0.25_s},
+    frc2::InstantCommand{
+      [this] {
+        pivotSubsystem.GetPID().SetOutputRange(-0.15, 0.5);
+        // extensionSubsystem.GetMotor()->SetClosedLoopRampRate(1);
       },
-      5.0,
-      [this](double output) {
-        driveSubsystem.Drive(output, 0);
-      },
-      {&driveSubsystem}
-    }
-  };
+      {}
+    },
+    frc2::InstantCommand{[this] {
+      // pivotSubsystem.SetSetpoint(-15);
+    }},
+    frc2::WaitCommand{0.5_s},
+    frc2::InstantCommand{[this] {
+      pivotSubsystem.GetPID().SetOutputRange(-0.5, 0.5);
+      // extensionSubsystem.SetSetpoint(-4.5);
+    },
+    {}},
+    frc2::WaitCommand{0.5_s},
+    frc2::InstantCommand{[this] {
+      // gripperSubsystem.Set(-0.2);
+    }},
 
-  // return new frc2::SequentialCommandGroup{
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       extensionSubsystem.SetSetpoint(40);
+    frc2::WaitCommand{1_s},
 
-  //     },
-  //     {}
-  //   },
-  //   frc2::InstantCommand{[this] {
-  //     while(!extensionSubsystem.AtSetpoint());
-  //   },
-  //   {}},
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       pivotSubsystem.SetSetpoint(-20);
-  //     },
-  //     {}
-  //   },
-  //   frc2::WaitUntilCommand{[this] {
-  //     return pivotSubsystem.AtSetpoint();
-  //   }},
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       gripperSubsystem.Set(0.5);
-  //     }
-  //   },
-  //   frc2::WaitCommand{1.5_s},
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       pivotSubsystem.SetSetpoint(-51);
-  //     },
-  //     {}
-  //   },
-  //   frc2::WaitUntilCommand{[this] {
-  //     return pivotSubsystem.AtSetpoint();
-  //   }},
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       extensionSubsystem.SetSetpoint(0);
-  //     },
-  //     {}
-  //   },
-  //   frc2::WaitUntilCommand{
-  //     [this] {
-  //       return extensionSubsystem.AtSetpoint();
-  //     }
-  //   },
-  //   frc2::WaitCommand{1_s},
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       gripperSubsystem.Set(-0.5);
-  //     }
-  //   },
-  //   frc2::WaitCommand{0.25_s},
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       gripperSubsystem.Set(0);
-  //     }
-  //   },
-  //   frc2::ParallelRaceGroup{
-  //     frc2::PIDCommand{
-  //       frc::PIDController{0.5, 0.0, 0.0},
-  //       [this] {
-  //         return driveSubsystem.GetPose().X().value();
-  //       },
-  //       10.0,
-  //       [this](double output) {
-  //         driveSubsystem.Drive(-output, 0);
-  //       },
-  //       {&driveSubsystem}
-  //     },
-  //     frc2::WaitCommand{5.0_s}
-  //   },
-  //   frc2::InstantCommand{
-  //     [this] {
-        
-  //     },
-  //     {}
-  //   }
-  // };
+    frc2::InstantCommand{[this] {
+      // extensionSubsystem.SetSetpoint(5);
+    }},
 
-  // command.Schedule();
-  // return new frc2::SequentialCommandGroup{
-  //   // frc2::InstantCommand{
-  //   //   [this] {
-  //   //     driveSubsystem.ResetAngle();
-  //   //   }
-  //   // }
-  //   std::move(ramseteCommand),
-  //   frc2::InstantCommand{
-  //     [this] {
-  //       driveSubsystem.DriveVolts(0_V, 0_V);
-  //     }
-  //   }
-  // };
+    frc2::WaitCommand{0.5_s},
 
+    frc2::InstantCommand{[this] {
+      // pivotSubsystem.SetSetpoint(-46);
+    }},
 
+    frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{[this] {
+            extensionSubsystem.GetPID().SetOutputRange(-0.5, 0.33);
+      // extensionSubsystem.SetSetpoint(-30);
+    }},
+
+    frc2::WaitCommand{1.5_s},
+
+    frc2::InstantCommand{[this] {
+      // gripperSubsystem.Set(0.2);
+    }},
+
+    frc2::InstantCommand{[this] {
+      // extensionSubsystem.SetSetpoint(5);
+      driveSubsystem.Drive(-0.1, 0);
+    }},
+    
+    frc2::WaitCommand{0.5_s},
+
+    frc2::InstantCommand{[this] {
+      // pivotSubsystem.SetSetpoint(-13);
+      driveSubsystem.Drive(0, 0);
+      driveSubsystem.ResetEncoders();
+    }},
+    frc2::WaitCommand{0.5_s},
+
+    frc2::ParallelRaceGroup{
+      frc2::PIDCommand{
+        frc::PIDController{0.05, 0.0, 0.0},
+        [this] {
+          frc::SmartDashboard::PutNumber("avg enc", driveSubsystem.GetAverageEncoder());
+          return driveSubsystem.GetAverageEncoder();
+        },
+        -42.5,
+        [this](double output) {
+          driveSubsystem.Drive(std::clamp(output, -0.25, 0.25), 0);
+        }
+      }
+
+    },
+
+    frc2::InstantCommand{[this] {
+      driveSubsystem.Drive(0, 0);
+    }}}
+  );
 }

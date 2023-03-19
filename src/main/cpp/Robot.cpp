@@ -7,10 +7,31 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 
-void Robot::RobotInit() {}
+
+#include <array>
+
+
+void Robot::RobotInit() {
+  
+}
 
 void Robot::RobotPeriodic() {
   frc2::CommandScheduler::GetInstance().Run();
+
+  c++;
+  if(c % 50 == 0) {
+   led.SetLength(60);
+    std::array<frc::AddressableLED::LEDData, 60> buffer;
+    bool red = frc::DriverStation::GetAlliance() == frc::DriverStation::Alliance::kRed;
+    for(int i = 0; i < 60; i++) {
+      // if(red)
+      buffer[i].SetRGB(255, 0, 255);
+      // else
+      // buffer[i].SetRGB(0, 0, 255);
+    }
+
+    led.SetData(buffer);
+  }
 }
 
 // Gets autonomous command from RobotContainer, schedules if command is not null
@@ -23,6 +44,11 @@ void Robot::AutonomousInit()
 
 void Robot::DisabledPeriodic() {
   frc::SmartDashboard::PutBoolean("disabled", true);
+
+
+  // if(c % 50 == 0) {
+   
+  // }
 }
 
 // void Robot::AutonomousPeriodic() {

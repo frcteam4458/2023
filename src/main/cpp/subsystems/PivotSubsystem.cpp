@@ -15,6 +15,7 @@ PivotSubsystem::PivotSubsystem() :
     Arm::GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kReverse, true);
     Arm::GetMotor()->SetSoftLimit(rev::CANSparkMax::SoftLimitDirection::kReverse, -51);
     SetSetpoint(Arm::GetPosition());
+    Arm::GetPID().SetOutputRange(-0.2, 0.2);
 
     Arm::GetPID().SetP(0.05);
 }

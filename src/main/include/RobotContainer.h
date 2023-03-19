@@ -21,7 +21,13 @@
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrajectoryGenerator.h>
 #include <frc2/command/CommandPtr.h>
+#include <frc2/command/Command.h>
 
+#include <frc2/command/ParallelRaceGroup.h>
+#include <frc2/command/RunCommand.h>
+
+#include <frc2/command/SequentialCommandGroup.h>
+#include <frc2/command/InstantCommand.h>
 
 
 class RobotContainer {
@@ -30,6 +36,8 @@ class RobotContainer {
 
   frc2::Command* GetTeleopCommand();
   frc2::Command* GetAutonomousCommand();
+
+  void SetupAuto();
 
 
  private:
@@ -40,6 +48,12 @@ class RobotContainer {
 
   TeleopCommand teleopCommand;
 
+  frc2::SequentialCommandGroup station1;
+  frc2::SequentialCommandGroup station2;
+  frc2::SequentialCommandGroup station3;
+  frc2::SequentialCommandGroup target;
+
+  frc::SendableChooser<frc2::Command*> chooser;
   void ConfigureButtonBindings();
 };
 

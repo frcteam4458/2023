@@ -10,6 +10,10 @@
 
 #include "RobotContainer.h"
 
+#include <frc/DriverStation.h>
+#include <frc/AddressableLED.h>
+
+
 class Robot : public frc::TimedRobot {
  public:
   void RobotInit() override;
@@ -25,8 +29,11 @@ class Robot : public frc::TimedRobot {
   // void SimulationPeriodic() override;
  private:
   frc2::Command* autonomousCommand = nullptr;
-
+  frc::DriverStation::Alliance alliance{frc::DriverStation::Alliance::kInvalid};
   RobotContainer container;
+  int c = 0;
+  frc::AddressableLED led{0};
+
 };
 
 #endif
