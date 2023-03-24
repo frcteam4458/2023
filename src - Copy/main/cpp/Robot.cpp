@@ -8,23 +8,30 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 
 
-
 #include <array>
 
 
 void Robot::RobotInit() {
-  container.GetLEDStrip()->SetLength(60);
-  for(int i = 0; i < 60; i++) {
-    buffer[i].SetRGB(127, 0, 127);
-  }
-
-  container.GetLEDStrip()->SetData(buffer);
-
-  container.GetLEDStrip()->Start();
+  
 }
 
 void Robot::RobotPeriodic() {
   frc2::CommandScheduler::GetInstance().Run();
+
+  c++;
+  if(c % 50 == 0) {
+   led.SetLength(60);
+    std::array<frc::AddressableLED::LEDData, 60> buffer;
+    bool red = frc::DriverStation::GetAlliance() == frc::DriverStation::Alliance::kRed;
+    for(int i = 0; i < 60; i++) {
+      // if(red)
+      buffer[i].SetRGB(255, 0, 255);
+      // else
+      // buffer[i].SetRGB(0, 0, 255);
+    }
+
+    led.SetData(buffer);
+  }
 }
 
 // Gets autonomous command from RobotContainer, schedules if command is not null
@@ -32,24 +39,16 @@ void Robot::AutonomousInit()
 {
   frc::SmartDashboard::PutBoolean("disabled", false);
   autonomousCommand = container.GetAutonomousCommand();
-
-  if(autonomousCommand)
   autonomousCommand->Schedule();
 }
 
 void Robot::DisabledPeriodic() {
-  if(frc::DriverStation::GetAlliance() != alliance) {
-    container.GetLEDStrip()->SetLength(60);
-  for(int i = 0; i < 60; i++) {
-    buffer[i].SetRGB((frc::DriverStation::GetAlliance() == frc::DriverStation::Alliance::kRed) * 127, 0,
-    (frc::DriverStation::GetAlliance() == frc::DriverStation::Alliance::kBlue) * 127);
-  }
-
-  container.GetLEDStrip()->SetData(buffer);
-
-  container.GetLEDStrip()->Start();
-  }
   frc::SmartDashboard::PutBoolean("disabled", true);
+
+
+  // if(c % 50 == 0) {
+   
+  // }
 }
 
 // void Robot::AutonomousPeriodic() {
@@ -59,10 +58,7 @@ void Robot::DisabledPeriodic() {
 // // Destroys autonomous command, gets teleop from RobotContainer, schedules if command is not null
 void Robot::TeleopInit() {
   frc::SmartDashboard::PutBoolean("disabled", false);
-  if(autonomousCommand)
-    autonomousCommand->Cancel();
   container.GetTeleopCommand()->Schedule();
-  // gripper.Set(-0.5);
 }
 
 // void Robot::TeleopPeriodic() {}

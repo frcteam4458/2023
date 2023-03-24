@@ -100,17 +100,15 @@ DriveSubsystem::DriveSubsystem() :
         drive.SetSafetyEnabled(false);
 
 
-    // fl.SetOpenLoopRampRate(1);
-    // fr.SetOpenLoopRampRate(1);
-    // bl.SetOpenLoopRampRate(1);
-    // br.SetOpenLoopRampRate(1);
+    fl.SetOpenLoopRampRate(1);
+    fr.SetOpenLoopRampRate(1);
+    bl.SetOpenLoopRampRate(1);
+    br.SetOpenLoopRampRate(1);
 
-    // fl.SetClosedLoopRampRate(1);
-    // fr.SetClosedLoopRampRate(1);
-    // bl.SetClosedLoopRampRate(1);
-    // br.SetClosedLoopRampRate(1);
-
-    SetRamp(0);
+    fl.SetClosedLoopRampRate(1);
+    fr.SetClosedLoopRampRate(1);
+    bl.SetClosedLoopRampRate(1);
+    br.SetClosedLoopRampRate(1);
     
 }
 
@@ -125,7 +123,7 @@ void DriveSubsystem::Periodic() {
     // frc::SmartDashboard::PutNumber("BR", br.Get());
 
     // frc::SmartDashboard::PutNumber("Odometer X", GetPose().X().value());
-    // frc::SmartDashboard::PutNumber("Odometer Y", GetPose().Y().value());
+    // frc::SmartDashboard::PutNumber("Odometer X", GetPose().Y().value());
 
 }
 
@@ -139,11 +137,6 @@ void DriveSubsystem::SimulationPeriodic() {
 
     s_gyro.SetAngle(drivetrainSim.GetHeading().Degrees().value());
     //s_gyro.SetRate((-drivetrainSim.GetHeading().Degrees().value() - -drivetrainSim.GetHeading().Degrees().value()) / 0.02);
-
-    flEncoder.SetPosition(drivetrainSim.GetLeftPosition().value());
-    frEncoder.SetPosition(drivetrainSim.GetRightPosition().value());
-    blEncoder.SetPosition(drivetrainSim.GetLeftPosition().value());
-    brEncoder.SetPosition(drivetrainSim.GetRightPosition().value());
 }
 
 void DriveSubsystem::Drive(float fwd, float omega) {
@@ -220,20 +213,4 @@ void DriveSubsystem::ResetEncoders() {
 
 double DriveSubsystem::GetAverageEncoder() {
     return (flEncoder.GetPosition() + frEncoder.GetPosition() + blEncoder.GetPosition() + brEncoder.GetPosition())/4;
-}
-
-void DriveSubsystem::SetRamp(double time) {
-    fl.SetOpenLoopRampRate(time);
-    fr.SetOpenLoopRampRate(time);
-    bl.SetOpenLoopRampRate(time);
-    br.SetOpenLoopRampRate(time);
-
-    fl.SetClosedLoopRampRate(time);
-    fr.SetClosedLoopRampRate(time);
-    bl.SetClosedLoopRampRate(time);
-    br.SetClosedLoopRampRate(time);
-}
-
-double DriveSubsystem::GetPitch() {
-    return pigeon.GetPitch();
 }

@@ -1,20 +1,18 @@
 {
   "HALProvider": {
-    "Other Devices": {
-      "AnalogGyro[0]": {
-        "header": {
-          "open": true
-        }
-      },
-      "DutyCycleEncoder[0]": {
-        "header": {
-          "open": true
-        }
-      },
-      "SPARK MAX [4]": {
-        "header": {
-          "open": true
-        }
+    "Addressable LEDs": {
+      "window": {
+        "visible": true
+      }
+    },
+    "PWM Outputs": {
+      "window": {
+        "visible": true
+      }
+    },
+    "RoboRIO": {
+      "window": {
+        "visible": true
       }
     }
   },
@@ -22,13 +20,22 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Shuffleboard/Dashboard/SendableChooser[0]": "String Chooser",
+      "/SmartDashboard/Autonomous Selector": "String Chooser",
+      "/SmartDashboard/Double Station": "Command",
       "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Floor Intake": "Command",
+      "/SmartDashboard/LEDs Orange (Cone)": "Command",
+      "/SmartDashboard/LEDs Purple (Cube)": "Command",
+      "/SmartDashboard/LEDs Team Color": "Command",
+      "/SmartDashboard/Mid": "Command",
+      "/SmartDashboard/SendableChooser[1]": "String Chooser",
       "/SmartDashboard/Setpoint 1": "Command",
       "/SmartDashboard/Setpoint 2": "Command",
       "/SmartDashboard/Setpoint 3": "Command",
       "/SmartDashboard/Setpoint 4": "Command",
       "/SmartDashboard/Setpoint 5": "Command",
-      "/SmartDashboard/Setpoint 6": "Command"
+      "/SmartDashboard/Setpoint 6": "Command",
+      "/SmartDashboard/Single Station": "Command"
     },
     "windows": {
       "/SmartDashboard/Field": {

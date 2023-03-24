@@ -19,7 +19,6 @@ class Arm : public frc2::SubsystemBase {
   Arm(std::string _name, int canID);
   void Periodic() override;
   virtual bool Set(double power);
-  void SetRaw(double power);
   double GetPosition();
   double GetAmperage();
   double GetCurrent250ms();

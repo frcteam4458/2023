@@ -6,12 +6,11 @@
 
 TeleopCommand::TeleopCommand(DriveSubsystem* subsystem)
     : driveSubsystem{subsystem},
-    driveChooser{},
-    ramp{1 / 1_s}
+    driveChooser{}
 {
-    // driveChooser.SetDefaultOption("Curvature", true);
-    // driveChooser.AddOption("Differential", false);
-    // frc::Shuffleboard::GetTab("Dashboard").Add(driveChooser).WithPosition(0, 0).WithSize(2, 1);
+    driveChooser.SetDefaultOption("Curvature", true);
+    driveChooser.AddOption("Differential", false);
+    frc::Shuffleboard::GetTab("Dashboard").Add(driveChooser).WithPosition(0, 0).WithSize(2, 1);
 }
 
 void TeleopCommand::Execute() {
@@ -21,7 +20,6 @@ void TeleopCommand::Execute() {
 
     y = controller.GetLeftY();
     omega = controller.GetRawAxis(2);
-
     if(controller.GetRawButton(8) != 0) omega /= 4;
-    driveSubsystem->Drive(ramp.Calculate(-std::pow(y, 3)), omega/12);
+        driveSubsystem->Drive(-std::pow(y, 3), omega/8);
 }

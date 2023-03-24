@@ -16,9 +16,6 @@ Arm::Arm(std::string _name, int canID) :
 {
     encoderPosition = frc::Shuffleboard::GetTab("Telemetry").Add(name + " Encoder Position", 0.0).GetEntry();
     setPower = frc::Shuffleboard::GetTab("Telemetry").Add(name + " Power", 0.0).GetEntry();
-    // motor.SetIdleMode()
-
-    // encoder.SetPosition(0);
 
     std::thread smoothCurrentThread{
         [this] {
@@ -61,10 +58,6 @@ bool Arm::Set(double power) {
     motor.Set(power);
     setPower->SetDouble(power);
     return false;
-}
-
-void Arm::SetRaw(double power) {
-    motor.Set(power);
 }
 
 double Arm::GetPosition() {

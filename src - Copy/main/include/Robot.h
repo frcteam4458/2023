@@ -7,15 +7,11 @@
 
 #include <frc/TimedRobot.h>
 #include <frc2/command/Command.h>
-#include <frc2/command/CommandPtr.h>
 
 #include "RobotContainer.h"
 
 #include <frc/DriverStation.h>
 #include <frc/AddressableLED.h>
-
-#include <rev/CANSparkMax.h>
-
 
 
 class Robot : public frc::TimedRobot {
@@ -32,12 +28,12 @@ class Robot : public frc::TimedRobot {
   // void SimulationInit() override;
   // void SimulationPeriodic() override;
  private:
-  std::optional<frc2::CommandPtr> autonomousCommand;
+  frc2::Command* autonomousCommand = nullptr;
+  frc::DriverStation::Alliance alliance{frc::DriverStation::Alliance::kInvalid};
   RobotContainer container;
   int c = 0;
-  std::array<frc::AddressableLED::LEDData, 60> buffer;
-  frc::DriverStation::Alliance alliance{frc::DriverStation::Alliance::kInvalid};
-  // rev::CANSparkMax gripper{7, rev::CANSparkMax::MotorType::kBrushless};
+  frc::AddressableLED led{0};
+
 };
 
 #endif

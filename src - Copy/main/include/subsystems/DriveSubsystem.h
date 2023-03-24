@@ -63,8 +63,6 @@ class DriveSubsystem : public frc2::SubsystemBase {
   void SetSetpoint();
   void ResetEncoders();
   double GetAverageEncoder();
-  void SetRamp(double time);
-  double GetPitch();
  private:
 
   #ifdef PWM_DRIVETRAIN

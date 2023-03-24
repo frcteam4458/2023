@@ -12,10 +12,6 @@
 #include <frc/Joystick.h>
 #include <frc/smartdashboard/SendableChooser.h>
 
-#include <frc/filter/SlewRateLimiter.h>
-
-#include <units/time.h>
-
 class TeleopCommand
     : public frc2::CommandHelper<frc2::CommandBase, TeleopCommand> {
  public:
@@ -26,7 +22,6 @@ class TeleopCommand
   DriveSubsystem* driveSubsystem;
   frc::XboxController controller{0};
   frc::SendableChooser<bool> driveChooser;
-  frc::SlewRateLimiter<units::scalar> ramp;
 
   double y = 0;
   double omega = 0;

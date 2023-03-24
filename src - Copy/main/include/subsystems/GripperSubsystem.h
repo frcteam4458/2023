@@ -13,7 +13,6 @@ class GripperSubsystem : public Arm {
   void Periodic() override;
   bool Set(double power) override;
  private:
- double gripperPower = 0;
 };
 
 #endif
