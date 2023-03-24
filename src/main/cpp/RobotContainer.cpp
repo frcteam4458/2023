@@ -485,7 +485,7 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
 
 
 
-  if(chooser.GetSelected() == 1) {
+  if(chooser.GetSelected() == 1) { // blue 1 (UNTESTED)
     return frc2::cmd::Sequence(
     AutoScoreRoutine(),
     
@@ -537,7 +537,7 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
 
 
 
-  if(chooser.GetSelected() == 2) {
+  if(chooser.GetSelected() == 2) { // balance (WORKING)
     return frc2::cmd::Sequence(
     AutoScoreRoutine(),
 
@@ -567,7 +567,7 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
 
 
 
-  if(chooser.GetSelected() == 3) {
+  if(chooser.GetSelected() == 3) { // blue 3
     return frc2::cmd::Sequence(
     AutoScoreRoutine(),
     
@@ -617,13 +617,13 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
    );
   }
 
-  if(chooser.GetSelected() == 4) {
+  if(chooser.GetSelected() == 4) { // RED 3 (UNTESTED)
     return frc2::cmd::Sequence(
       AutoScoreRoutine()
     );
   }
 
-  if(chooser.GetSelected() == 5) {
+  if(chooser.GetSelected() == 5) { // RED 1 (UNTESTED)
     return frc2::cmd::Sequence(
       AutoScoreRoutine(),
 
@@ -646,31 +646,9 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
     );
   }
 
-  if(chooser.GetSelected() == 6) {
+  if(chooser.GetSelected() == 6) { // middle no balance
     return frc2::cmd::Sequence(
-    AutoScoreRoutine(),
-
-    frc2::cmd::RunOnce([this] {
-      driveSubsystem.ResetEncoders();
-    }),
-    
-    frc2::PIDCommand{
-      frc::PIDController{0.7, 0.0, 0.0},
-      [this] {
-        return driveSubsystem.GetAverageEncoder();
-      },
-      -60.0,
-      [this](double output) {
-        if(output > 0.25 && output > 0) {
-          output = 0.25;
-        }
-
-        if(output < -0.25 && output < 0) {
-          output = -0.25;
-        }
-        driveSubsystem.Drive(output, 0);
-      }
-    }
+    AutoScoreRoutine()
    ); 
   }
 }
@@ -678,12 +656,12 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
 
 
 void RobotContainer::SetupAuto() {
-  chooser.AddOption("Blue 3 / Red 1", 3);
+  chooser.AddOption("Blue 1", 1); // long
   chooser.SetDefaultOption("Real Balance", 2);
-  chooser.AddOption("Blue 1 / Red 3", 1);
-  chooser.AddOption("Blue 2 / Red 2 No Balance", 4);
-  chooser.AddOption("Blue 2 / Red 2 Autobalance", 5);
-  chooser.AddOption("Blue 1 / Red 3 -60.0", 6);
+  chooser.AddOption("Blue 3", 3); // short
+  chooser.AddOption("Red 3", 4); // long
+  chooser.AddOption("Red 1", 5); // short
+  chooser.AddOption("Middle No Balance", 6);
 }
 
 frc2::CommandPtr RobotContainer::AutoScoreRoutine() {
