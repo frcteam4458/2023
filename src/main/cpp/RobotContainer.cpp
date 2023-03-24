@@ -32,6 +32,8 @@
 
 #include <frc/shuffleboard/Shuffleboard.h>
 
+#include "Setpoints.h"
+
 RobotContainer::RobotContainer() : 
 driveSubsystem{},
 extensionSubsystem{},
@@ -56,79 +58,30 @@ void RobotContainer::ConfigureButtonBindings() {
   frc::SmartDashboard::PutBoolean("Gripper", false);
     frc::SmartDashboard::PutNumber("Auto Distance", -44.5);
 
-
-  stopgrip.WhenPressed(
-    frc2::InstantCommand{
-      [this] {
-        gripperSubsystem.Set(0);
-      }
-    }
-  );
-
-  button1.OnTrue(
-    frc2::InstantCommand{
-      [this] {
-        if(GripCommand::GetClosed()) {
-          gripperSubsystem.GetCurrentCommand()->Cancel();
-        }
-      }
-    }.ToPtr()
-  );
-
-  // leftBumper.WhileHeld(frc2::InstantCommand{
-  //   [this] {
-  //     gripperSubsystem.Set(0.5);
-  //   },
-  //   {&gripperSubsystem}
-  // });
   leftBumper.WhenPressed(frc2::InstantCommand{
     [this] {
-      gripperSubsystem.Set(0.5);
+      gripperSubsystem.Set(GRIPPER_POWER);
       frc::SmartDashboard::PutBoolean("Gripper", false);
-    }//,
-    //{&gripperSubsystem}
+    }
   });
-
-  joystickTrigger.WhenPressed(frc2::InstantCommand{
-    [this] {
-      if(gripperSubsystem.GetMotor()->Get() != 0.5) {
-        gripperSubsystem.Set(-0.5);
-      } else {
-        gripperSubsystem.Set(0.5);
-      }
-      frc::SmartDashboard::PutBoolean("Gripper", gripperSubsystem.GetMotor()->Get() == -0.5);
-    }//,
-    //{&gripperSubsystem}
-  });
-  // rightBumper.WhenPressed(frc2::InstantCommand{
-  //   [this] {
-  //     gripperSubsystem.Set(-0.5);
-  //   },
-  //   {&gripperSubsystem}
-  // });
-  // rightBumper.WhenReleased(frc2::InstantCommand{
-  //   [this] {
-  //     gripperSubsystem.Set(0);
-  //   },
-  //   {&gripperSubsystem}
-  // });
 
   rightBumper.WhenPressed(frc2::InstantCommand{
     [this] {
-      gripperSubsystem.Set(-0.3);
+      gripperSubsystem.Set(-GRIPPER_POWER);
       frc::SmartDashboard::PutBoolean("Gripper", true);
-    }//,w
-    //{&gripperSubsystem}
+    }
   });
+
+  // TODO add Operator gripper control
 
   pivotSubsystem.SetDefaultCommand(
     frc2::RunCommand{
       [this] {
         double input = pivotExtensionStick.GetRawAxis(1);
-        // if(std::abs(input) < 0.1) {
-        //   input = 0.0;
-        // }
-        pivotSubsystem.Set(input/4);
+        if(std::abs(input) < DEADZONE) {
+          input = 0;
+        }
+        pivotSubsystem.AddSetpoint(input/4);
       },
       {&pivotSubsystem}
     }
@@ -138,13 +91,10 @@ void RobotContainer::ConfigureButtonBindings() {
     frc2::RunCommand{
       [this] {
         double input = pivotExtensionStick.GetRawAxis(0);
-        // if(std::abs(input) < 0.2) {
-        //   input = 0.0;
-        // }
-
-        if(input < 0) input /= 4;
-        else input /= 2;
-        extensionSubsystem.Set(-input);
+        if(std::abs(input) < DEADZONE) {
+          input = 0;
+        }
+        extensionSubsystem.AddSetpoint(-input/4);
       },
       {&extensionSubsystem}
     }
@@ -153,155 +103,64 @@ void RobotContainer::ConfigureButtonBindings() {
   toggleSoftLimits.WhenPressed(frc2::InstantCommand{
     [this] {
       extensionSubsystem.SetSoftLimits(!extensionSubsystem.GetSoftLimits());
-    },
-    {}
-  });
-
-  // button2.WhenPressed(frc2::InstantCommand{
-  //   [this] {
-  //     extensionSubsystem.SetSetpoint(0);
-  //     pivotSubsystem.SetSetpoint(0);
-  //     gripperSubsystem.SetSetpoint(0);
-  //   },
-  //   {
-
-  //   }
-  // });
-  frc::SmartDashboard::PutData("Floor Intake", new frc2::InstantCommand{
-    [this] {
-      pivotSubsystem.SetSetpoint(-13);
-      extensionSubsystem.SetSetpoint(-3.5);
-      // gripperSubsystem.SetSetpoint(-7.5);
     }
   });
+
 
   intake.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-13);
-      extensionSubsystem.SetSetpoint(-3.5);
-      // gripperSubsystem.SetSetpoint(-7.5);
-    }
-  });
-
-  frc::SmartDashboard::PutData("Ready", new frc2::InstantCommand{
-    [this] {
-      pivotSubsystem.SetSetpoint(-17);
-      extensionSubsystem.SetSetpoint(1);
+      pivotSubsystem.SetSetpoint(FLOOR_INTAKE[0]);
+      extensionSubsystem.SetSetpoint(FLOOR_INTAKE[1]);
+      // gripperSubsystem.SetSetpoint(FLOOR_INTAKE[2]);
     }
   });
 
   readyStick.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-17);
-      extensionSubsystem.SetSetpoint(1);
+      pivotSubsystem.SetSetpoint(READY[0]);
+      extensionSubsystem.SetSetpoint(READY[1]);
     }
   });
 
   ready.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-17);
-      extensionSubsystem.SetSetpoint(1);
+      pivotSubsystem.SetSetpoint(READY[0]);
+      extensionSubsystem.SetSetpoint(READY[1]);
     }
   });
 
-  frc::SmartDashboard::PutData("Mid", new frc2::SequentialCommandGroup{
-    frc2::InstantCommand{
-      [this] {
-        pivotSubsystem.SetSetpoint(-45);
-      }
-    },
 
-    frc2::WaitCommand{1_s},
-
-    frc2::InstantCommand{
-      [this] {
-        extensionSubsystem.SetSetpoint(-20);
-      }
-    }
-  });
-
-  frc::SmartDashboard::PutData("High", new frc2::SequentialCommandGroup{
-    frc2::InstantCommand{
-      [this] {
-        pivotSubsystem.SetSetpoint(-50);
-      }
-    },
-
-    frc2::WaitCommand{1.25_s},
-
-    frc2::InstantCommand{
-      [this] {
-        extensionSubsystem.SetSetpoint(-30);
-      }
-    }
-  });
-
-  frc::SmartDashboard::PutData("Single Station", new frc2::InstantCommand{
-    [this] {
-      pivotSubsystem.SetSetpoint(-45);
-      extensionSubsystem.SetSetpoint(-4);
-      // gripperSubsystem.SetSetpoint(-7.5);
-    }
-  });
 
   single.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-45);
-      extensionSubsystem.SetSetpoint(-4);
-      // gripperSubsystem.SetSetpoint(-7.5);
+      pivotSubsystem.SetSetpoint(SINGLE_STATION[0]);
+      extensionSubsystem.SetSetpoint(SINGLE_STATION[1]);
+      // gripperSubsystem.SetSetpoint(SINGLE_STATION[2]);
     }
   });
 
   singlestick.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-45);
-      extensionSubsystem.SetSetpoint(-4);
-      // gripperSubsystem.SetSetpoint(-7.5);
-    }
-  });
-
-
-  frc::SmartDashboard::PutData("Double Station", new frc2::InstantCommand{
-    [this] {
-      pivotSubsystem.SetSetpoint(-50);
-      extensionSubsystem.SetSetpoint(-13.5);
-      // gripperSubsystem.SetSetpoint(-7.5);
+      pivotSubsystem.SetSetpoint(SINGLE_STATION[0]);
+      extensionSubsystem.SetSetpoint(SINGLE_STATION[1]);
+      // gripperSubsystem.SetSetpoint(SINGLE_STATION[2]);
     }
   });
 
   slidestick.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-50);
-      extensionSubsystem.SetSetpoint(-13.5);
-      // gripperSubsystem.SetSetpoint(-7.5);
+      pivotSubsystem.SetSetpoint(DOUBLE_STATION[0]);
+      extensionSubsystem.SetSetpoint(DOUBLE_STATION[1]);
+      // gripperSubsystem.SetSetpoint(DOUBLE_STATION[2]);
     }
   });
 
   
   doubleb.WhenPressed(frc2::InstantCommand{
     [this] {
-      pivotSubsystem.SetSetpoint(-50);
-      extensionSubsystem.SetSetpoint(-13.5);
-      // gripperSubsystem.SetSetpoint(-7.5);
-    }
-  });
-
-  
-
-  frc::SmartDashboard::PutData("LEDs Team Color", new frc2::InstantCommand{
-    [this] {
-      alliance = frc::DriverStation::GetAlliance();
-      for(int i = 0; i < 60; i++) {
-        if(alliance == frc::DriverStation::Alliance::kRed)
-        buffer[i].SetRGB(127, 0, 0);
-        else if(alliance == frc::DriverStation::Alliance::kBlue)
-        buffer[i].SetRGB(0, 0, 127);
-        else
-        buffer[i].SetRGB(127, 0, 127);
-      }
-
-      GetLEDStrip()->SetData(buffer);
-      GetLEDStrip()->Start();
+      pivotSubsystem.SetSetpoint(DOUBLE_STATION[0]);
+      extensionSubsystem.SetSetpoint(DOUBLE_STATION[1]);
+      // gripperSubsystem.SetSetpoint(DOUBLE_STATION[2]);
     }
   });
 
@@ -322,30 +181,10 @@ void RobotContainer::ConfigureButtonBindings() {
     }
   });
 
-  frc::SmartDashboard::PutData("LEDs Orange (Cone)", new frc2::InstantCommand{
-    [this] {
-      for(int i = 0; i < 60; i++) {
-        buffer[i].SetRGB(127, 45, 0);
-      }
-      GetLEDStrip()->SetData(buffer);
-      GetLEDStrip()->Start();
-    }
-  });
-
   orange.WhenPressed(frc2::InstantCommand{
     [this] {
       for(int i = 0; i < 60; i++) {
         buffer[i].SetRGB(127, 45, 0);
-      }
-      GetLEDStrip()->SetData(buffer);
-      GetLEDStrip()->Start();
-    }
-  });
-
-  frc::SmartDashboard::PutData("LEDs Purple (Cube)", new frc2::InstantCommand{
-    [this] {
-      for(int i = 0; i < 60; i++) {
-        buffer[i].SetRGB(127, 0, 127);
       }
       GetLEDStrip()->SetData(buffer);
       GetLEDStrip()->Start();
@@ -361,6 +200,9 @@ void RobotContainer::ConfigureButtonBindings() {
       GetLEDStrip()->Start();
     }
   });
+
+
+  // this is gonna need more work
 
   frc::SmartDashboard::PutData("(Ready) Score Mid", new frc2::SequentialCommandGroup{
     frc2::InstantCommand{[this] {
@@ -422,6 +264,40 @@ void RobotContainer::ConfigureButtonBindings() {
     }}
   });
 
+  frc::SmartDashboard::PutData("Mid", new frc2::SequentialCommandGroup{
+    frc2::InstantCommand{
+      [this] {
+        pivotSubsystem.SetSetpoint(-45);
+      }
+    },
+
+    frc2::WaitCommand{1_s},
+
+    frc2::InstantCommand{
+      [this] {
+        extensionSubsystem.SetSetpoint(-20);
+      }
+    }
+  });
+
+  frc::SmartDashboard::PutData("High", new frc2::SequentialCommandGroup{
+    frc2::InstantCommand{
+      [this] {
+        pivotSubsystem.SetSetpoint(-50);
+      }
+    },
+
+    frc2::WaitCommand{1.25_s},
+
+    frc2::InstantCommand{
+      [this] {
+        extensionSubsystem.SetSetpoint(-30);
+      }
+    }
+  });
+
+  // gripper operator controls
+
   frc::SmartDashboard::PutData("Gripper Close", new frc2::InstantCommand{[this] {
     gripperSubsystem.Set(-0.5);
   }});
@@ -429,8 +305,9 @@ void RobotContainer::ConfigureButtonBindings() {
   frc::SmartDashboard::PutData("Gripper Open", new frc2::InstantCommand{[this] {
     gripperSubsystem.Set(0.5);
   }});
-  frc::SmartDashboard::PutNumber("Auto Distance", -44.5);
 
+
+  frc::SmartDashboard::PutNumber("Auto Distance", -44.5);
   SetupAuto();
   frc::SmartDashboard::PutNumber("Auto Distance", -44.5);
 
@@ -567,7 +444,7 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
 
 
 
-  if(chooser.GetSelected() == 3) { // blue 3
+  if(chooser.GetSelected() == 3) { // blue 3 (WORKING)
     return frc2::cmd::Sequence(
     AutoScoreRoutine(),
     
@@ -670,8 +547,10 @@ frc2::CommandPtr RobotContainer::AutoScoreRoutine() {
       driveSubsystem.ResetAngle();
       extensionSubsystem.SetSoftLimits(false);
       extensionSubsystem.GetPID().SetOutputRange(-0.25, 0.25);
+      extensionSubsystem.SetPIDRange(-0.25, 0.25);
       extensionSubsystem.SetSetpoint(5);
       pivotSubsystem.GetPID().SetOutputRange(-0.15, 0.5);
+      pivotSubsystem.SetPIDRange(-0.15, 0.5);
     }),
 
     frc2::cmd::Wait(0.25_s),
@@ -684,6 +563,7 @@ frc2::CommandPtr RobotContainer::AutoScoreRoutine() {
 
     frc2::cmd::RunOnce([this] {
       pivotSubsystem.GetPID().SetOutputRange(-0.5, 0.5);
+      pivotSubsystem.SetPIDRange(-0.5, 0.5);
       extensionSubsystem.SetSetpoint(-4.5);
     }),
 
@@ -709,6 +589,7 @@ frc2::CommandPtr RobotContainer::AutoScoreRoutine() {
 
     frc2::cmd::RunOnce([this] {
       extensionSubsystem.GetPID().SetOutputRange(-0.5, 0.33);
+      extensionSubsystem.SetPIDRange(-0.5, 0.33);
       extensionSubsystem.SetSetpoint(-30);
     }),
 
@@ -731,6 +612,7 @@ frc2::CommandPtr RobotContainer::AutoScoreRoutine() {
       pivotSubsystem.SetSetpoint(0);
       driveSubsystem.Drive(0, 0);
       pivotSubsystem.GetPID().SetOutputRange(-0.4, 0.5);
+      pivotSubsystem.SetPIDRange(-0.4, 0.5);
     })
   );
 

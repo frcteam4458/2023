@@ -19,24 +19,16 @@ GripperSubsystem::GripperSubsystem() :
     Arm::GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kForward, true);
 
     Arm::GetMotor()->EnableSoftLimit(rev::CANSparkMax::SoftLimitDirection::kReverse, false);
+
+    Arm::GetWPIPID()->SetP(0.2);
+    
 }
 
 void GripperSubsystem::Periodic() {
     Arm::Periodic();
-    // Arm::SetRaw(gripperPower);
-    // frc::SmartDashboard::PutNumber("Arm Amperage", Arm::GetAmperage());
 }
 
 bool GripperSubsystem::Set(double power) {
-    // if(power == 0) power = 0.026;
-    // if(std::abs(power) < 0.1) power = 0;
-    // if(Arm::Set(power)) return true;
-    // Arm::SetSetpoint(Arm::GetPosition());
-    // return false;
-    // gripperPower = power;
-    // wpi::outs() << power;
-    // wpi::outs() << "\n";
     Arm::GetMotor()->Set(power);
-
     return false;
 }

@@ -18,6 +18,9 @@ PivotSubsystem::PivotSubsystem() :
     Arm::GetPID().SetOutputRange(-0.4, 0.4);
 
     Arm::GetPID().SetP(0.1);
+
+    Arm::SetPID(0.1, 0, 0);
+    Arm::SetPIDRange(-0.4, 0.4);
 }
 
 void PivotSubsystem::Periodic() {

@@ -19,6 +19,8 @@ ExtensionSubsystem::ExtensionSubsystem() :
     // frc::SmartDashboard::PutNumber("Extension Spark Encoder", Arm::GetPosition());
     SetSetpoint(Arm::GetPosition());
     Arm::GetPID().SetP(0.1);
+    Arm::SetPIDRange(-0.4, 0.4);
+    Arm::SetPID(0.1, 0, 0);
 }
 
 void ExtensionSubsystem::Periodic() {

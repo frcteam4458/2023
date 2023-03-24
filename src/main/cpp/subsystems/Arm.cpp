@@ -20,25 +20,25 @@ Arm::Arm(std::string _name, int canID) :
 
     // encoder.SetPosition(0);
 
-    std::thread smoothCurrentThread{
-        [this] {
-            double amps[] = {0, 0, 0, 0};
-            double total = 0;
-            while(true) {
-                for(int i = 0; i < 4; i++) {
-                    amps[i] = motor.GetOutputCurrent();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                }
-                for(int i = 0; i < 4; i++) {
-                    total += amps[i];
-                    total /= 4;
-                }
-                amperage250ms = total;
-                total = 0;
-            }
-        }
-    };
-    smoothCurrentThread.detach(); // i wanna kill myself
+    // std::thread smoothCurrentThread{
+    //     [this] {
+    //         double amps[] = {0, 0, 0, 0};
+    //         double total = 0;
+    //         while(true) {
+    //             for(int i = 0; i < 4; i++) {
+    //                 amps[i] = motor.GetOutputCurrent();
+    //                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    //             }
+    //             for(int i = 0; i < 4; i++) {
+    //                 total += amps[i];
+    //                 total /= 4;
+    //             }
+    //             amperage250ms = total;
+    //             total = 0;
+    //         }
+    //     }
+    // };
+    // smoothCurrentThread.detach(); // i wanna kill myself
         position = encoder.GetPosition();
 }
 
@@ -48,15 +48,18 @@ void Arm::Periodic() {
     if(frc::SmartDashboard::GetBoolean("disabled", true)) {
         setpoint = GetPosition();
     }
+    controller.SetSetpoint(setpoint);
+    if(pidEnabled)
+    motor.Set(std::clamp(controller.Calculate(GetPosition()), min, max));
 }
 
 bool Arm::Set(double power) {
-    if(std::abs(power) < 0.025) {
-        power = 0;
-        Arm::GetPID().SetReference(GetSetpoint(), rev::CANSparkMax::ControlType::kPosition);
-        return true;
-    }
-    position = encoder.GetPosition();
+    // if(std::abs(power) < 0.025) {
+    //     power = 0;
+    //     Arm::GetPID().SetReference(GetSetpoint(), rev::CANSparkMax::ControlType::kPosition);
+    //     return true;
+    // }
+    // position = encoder.GetPosition();
     Arm::power = power;
     motor.Set(power);
     setPower->SetDouble(power);
@@ -105,13 +108,32 @@ double Arm::GetSetpoint() {
 }
 
 bool Arm::AtSetpoint() { // idk what im doing
-    if(encoder.GetVelocity() < 0.25) {
-        if(setpoint - 0.5 < encoder.GetPosition() && encoder.GetPosition() < setpoint + 0.5) return true;
-    }
-
-    return false;
+    return controller.AtSetpoint();
 }
 
 rev::SparkMaxRelativeEncoder Arm::GetEncoder() {
     return encoder;
+}
+
+void Arm::AddSetpoint(double inc) {
+    setpoint += inc;
+}
+
+void Arm::SetPID(double p, double i, double d) {
+    controller.SetP(p);
+    controller.SetI(i);
+    controller.SetD(d);
+}
+
+frc::PIDController* Arm::GetWPIPID() {
+    return &controller;
+}
+
+void Arm::SetPIDState(bool enabled) {
+    pidEnabled = enabled;
+}
+
+void Arm::SetPIDRange(double _min, double _max) {
+    min = _min;
+    max = _max;
 }

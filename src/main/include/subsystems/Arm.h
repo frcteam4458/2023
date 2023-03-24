@@ -14,6 +14,8 @@
 
 #include <rev/SparkMaxPIDController.h>
 
+#include <frc/controller/PIDController.h>
+
 class Arm : public frc2::SubsystemBase {
  public:
   Arm(std::string _name, int canID);
@@ -31,6 +33,13 @@ class Arm : public frc2::SubsystemBase {
   rev::SparkMaxPIDController GetPID();
   bool AtSetpoint();
   rev::SparkMaxRelativeEncoder GetEncoder();
+  frc::PIDController* GetWPIPID();
+
+  // new functions
+  void AddSetpoint(double inc);
+  void SetPID(double p, double i, double d);
+  void SetPIDState(bool enabled);
+  void SetPIDRange(double _min, double _max);
  private:
   std::string name;
   nt::GenericEntry* encoderPosition;
@@ -42,6 +51,12 @@ class Arm : public frc2::SubsystemBase {
   double amperage250ms = 0;
   double position = -100; // -100 is default value
   double setpoint = -100; // -100 is default value
+
+  double max = 1;
+  double min = -1;
+  bool pidEnabled = true;
+
+  frc::PIDController controller{0.0, 0.0, 0.0};
 };
 
 #endif
